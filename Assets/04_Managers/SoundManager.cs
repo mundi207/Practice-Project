@@ -1,74 +1,62 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Oculus.Voice.Core.Bindings.Android.PlatformLogger;
 using UnityEngine;
+using UnityEngine.Audio;
 
+public enum SoundType
+{
+    MOVE,
+    JUMP
+}
+
+/// <summary>
+/// 구조체 배열 인덱스와 SoundType 인덱스가 맞아 떨어져야 함.
+/// </summary>
+[RequireComponent(typeof(AudioSource))]
 public class SoundManager : MonoBehaviour
 {
     public static SoundManager Instance;
-    [SerializeField] private AudioResistory audioScriptable;
+    private AudioSource audioSource;
 
-    public Dictionary<BGMType, AudioSourceObj> BGMList = new Dictionary<BGMType, AudioSourceObj>();
-    public Dictionary<SFXType, AudioSourceObj> SFXList = new Dictionary<SFXType, AudioSourceObj>();
-
-    private Transform bgmContainer;
-    private Transform sfxContainer;
+    [SerializeField] private SoundSO soundSO;
 
     public async Task Initialized()
     {
-        if(Instance == null)
+        if(!Instance)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }   
+            audioSource = GetComponent<AudioSource>();
+        }
+    }
+
+    public static void PlaySound(SoundType type, AudioSource source = null, float volume = 1f)
+    {
+        SoundList soundList = Instance.soundSO.sounds[(int)type];
+        AudioClip[] clips = soundList.Sounds;
+        AudioMixerGroup audioMixerGroup = soundList.mixer;
+
+        if(source)
+        {
+            source.clip = clips[UnityEngine.Random.Range(0, clips.Length)];
+            source.outputAudioMixerGroup = audioMixerGroup;
+            source.volume = volume * soundList.volume;
+            source.Play();
+        }
         else
         {
-            Destroy(gameObject);
-            return;
-        }
-        SpawnContainer();
-        LoadAudioCilp();
-    }
-
-    private void SpawnContainer()
-    {
-        bgmContainer = new GameObject {name = "BgmContainer" }.transform;
-        sfxContainer = new GameObject {name = "SfxContainer" }.transform;
-    }
-
-    /// <summary>
-    /// AudioResistory가 참조하는 오디오 클립들을 불러옵니다.
-    /// </summary>
-    private void LoadAudioCilp()
-    {
-        for(int i = 0; i < audioScriptable.bgmClipList.Count; i++)
-        {
-            AudioSourceObj sourceObj = Instantiate(audioScriptable.poolObjPrefab).GetComponent<AudioSourceObj>();
-
-            sourceObj.transform.SetParent(bgmContainer);
-            sourceObj.Clip = audioScriptable.bgmClipList[i];
-        }
-        for(int i = 0; i < audioScriptable.sfxClipList.Count; i++)
-        {
-            AudioSourceObj sourceObj = Instantiate(audioScriptable.poolObjPrefab).GetComponent<AudioSourceObj>();
-
-            sourceObj.transform.SetParent(sfxContainer);
-            sourceObj.Clip = audioScriptable.sfxClipList[i];
+            Instance.audioSource.outputAudioMixerGroup = audioMixerGroup;
+            Instance.audioSource.PlayOneShot(clips[UnityEngine.Random.Range(0, clips.Length)], volume * soundList.volume);
         }
     }
+}
 
-    /// <summary>
-    /// BGM을 재생합니다.
-    /// </summary>
-    public void PlayBGM(BGMType bgmType)
-    {
-        
-    }
-
-    /// <summary>
-    /// SFX를 재생합니다.
-    /// </summary>
-    public void PlaySFX(SFXType sfxType)
-    {
-        
-    }
+[Serializable]
+public struct SoundList
+{
+    [HideInInspector] public string name;
+    [Range(0, 1)] public float volume;
+    public AudioMixerGroup mixer;
+    public AudioClip[] Sounds;
 }

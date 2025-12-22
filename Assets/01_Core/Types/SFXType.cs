@@ -1,6 +1,5 @@
-using UnityEngine;
-
-public class SFXType
+public enum SFXType
 {
-    
+    None,
+    Error
 }
