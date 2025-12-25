@@ -1,25 +1,17 @@
 using UnityEngine;
+using UnityEngine.Timeline;
 
 public enum DataType
 {
     
 }
 
-public class DataMaanger : MonoBehaviour
+public class DataMaanger : Singleton<DataMaanger>
 {
-    public static DataMaanger Instance;
-
-    private void Awake()
-    {
-        if(!Instance)
-        {
-            Instance = this;
-        }
-    }
+    
 }
 
 public struct DataList
 {
     
 }
-

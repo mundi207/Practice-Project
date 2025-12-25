@@ -15,20 +15,15 @@ public enum SoundType
 /// 구조체 배열 인덱스와 SoundType 인덱스가 맞아 떨어져야 함.
 /// </summary>
 [RequireComponent(typeof(AudioSource))]
-public class SoundManager : MonoBehaviour
+public class SoundManager : Singleton<SoundManager>
 {
-    public static SoundManager Instance;
     private AudioSource audioSource;
 
     [SerializeField] private SoundSO soundSO;
 
-    public async Task Initialized()
+    protected override void OnSingletonInit()
     {
-        if(!Instance)
-        {
-            Instance = this;
-            audioSource = GetComponent<AudioSource>();
-        }
+        Debug.Log("SoundManager Init...");
     }
 
     public static void PlaySound(SoundType type, AudioSource source = null, float volume = 1f)

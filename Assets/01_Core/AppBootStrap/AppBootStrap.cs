@@ -1,41 +1,35 @@
-using System;
-using System.Threading.Tasks;
 using UnityEngine;
+using System.Collections.Generic;
 
 /// <summary>
-/// 앱 최초 실행 시 필요한 매니저를 호출한다.
-/// </summary>
+/// 앱 최초 실행 시 필요한 매니저를 호출합니다.
+/// </summary>]
+[RequireComponent(typeof(AppBootStrap))]
 public class AppBootStrap : MonoBehaviour
 {
-    public static AppBootStrap Instance;
+    [SerializeField] private List<GameObject> managerPrefabs;
 
-    [SerializeField] private SoundManager soundManager;
-    [SerializeField] private UIManager uIManager;
-
-    private async void Awake()
+    private void Awake()
     {
-        if(Instance == null)
+        DontDestroyOnLoad(gameObject);
+
+        foreach (var prefab in managerPrefabs)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            if (prefab == null) continue;
+
+            var managerType = prefab.GetComponent<MonoBehaviour>().GetType();
+
+            // 이미 존재하면 생성 안 함
+            if (FindObjectOfType(managerType) == null)
+            {
+                Instantiate(prefab);
+            }
         }
-        else
-        {
-            Destroy(gameObject);
-        }
-        try
-        {
-            await InitializedManagers();
-        }
-        catch(Exception e)
-        {
-            Debug.LogError(e);
-        }
+        InitTitle();
     }
 
-    private async Task InitializedManagers()
+    public void InitTitle()
     {
-        await soundManager.Initialized();
-        await uIManager.Initialized();
+        UIManager.Instance?.SpawnAnyPage<TitlePanel>();
     }
 }
